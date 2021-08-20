@@ -5,7 +5,7 @@ displayName: "Foo's client installer"
 name: "fooInstaller"
 
 #your name
-author: "You"
+author: "foo, buthed010203"
 
 #the fully qualified main class of the mod
 main: "fooInstaller.Main"
