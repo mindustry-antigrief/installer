@@ -17,5 +17,5 @@ description: "[scarlet]WIP client installer"
 version: 0.0
 
 #the minimum game build required to run this mod
-minGameVersion: 125
+minGameVersion: 999
 
