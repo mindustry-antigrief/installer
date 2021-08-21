@@ -37,8 +37,8 @@ public class Main extends Mod{
                 dialog.cont.add("[accent]Select a version of the client to download").colspan(2).row();
                 dialog.cont.button("v6", () -> install("mindustry-antigrief/mindustry-client-v6-builds")).fillX();
                 dialog.cont.button("v7", () -> install("mindustry-antigrief/mindustry-client-v7-builds")).fillX();
-                dialog.addCloseButton();
             }
+            dialog.addCloseButton();
             dialog.show();
         });
     }
