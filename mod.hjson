@@ -1,21 +1,8 @@
-#the mod name as displayed in-game
-displayName: "Foo's client installer"
-
-#the internal name of your mod
+displayName: "Foo's Client Installer"
 name: "fooInstaller"
-
-#your name
 author: "foo, buthed010203"
-
-#the fully qualified main class of the mod
 main: "fooInstaller.Main"
-
-#the mod description as seen in the mod dialog
-description: "[scarlet]WIP client installer"
-
-#the mod version
-version: 0.0
-
-#the minimum game build required to run this mod
-minGameVersion: 125
-
+description: "Simple mod to install foo's client for you"
+version: "1.0"
+minGameVersion: 128
+hidden: true
