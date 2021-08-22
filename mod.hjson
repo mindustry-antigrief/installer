@@ -3,6 +3,6 @@ name: "fooInstaller"
 author: "foo, buthed010203"
 main: "fooInstaller.Main"
 description: "Simple mod to install foo's client for you"
-version: "1.0"
+version: "1.1"
 minGameVersion: 128
 hidden: true

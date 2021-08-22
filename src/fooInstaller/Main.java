@@ -34,9 +34,10 @@ public class Main extends Mod{
                 dialog.cont.add("[scarlet]Foo's client isn't available on mobile!");
                 Vars.mods.setEnabled(Vars.mods.getMod(this.getClass()), false);
             } else {
-                dialog.cont.add("[accent]Select a version of the client to download").colspan(2).row();
+                dialog.cont.add("[accent]Select a version of the client to download").colspan(3).row();
                 dialog.cont.button("v6", () -> install("mindustry-antigrief/mindustry-client-v6-builds")).fillX();
                 dialog.cont.button("v7", () -> install("mindustry-antigrief/mindustry-client-v7-builds")).fillX();
+                dialog.cont.button("join our discord", () -> Core.app.openURI("https://discord.gg/yp9ZW7j")).fillX();
                 dialog.addCloseButton();
             }
             dialog.show();
@@ -81,7 +82,9 @@ public class Main extends Mod{
                         );
                         Core.app.exit();
                     }catch(IOException e){
-                        ui.showException(e);
+                        dialog.cont.clearChildren();
+                        dialog.cont.add("It seems that you don't have java installed, please click the button below then click the \"latest release\" button on the website.").row();
+                        dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot"));
                     }
                 }, (Cons<Throwable>)e -> {
                     dialog.hide();
@@ -93,6 +96,7 @@ public class Main extends Mod{
                     cancel[0] = true;
                     dialog.hide();
                 }).size(210f, 64f);
+                dialog.buttons.button("join our discord", Icon.discord, () -> Core.app.openURI("https://discord.gg/yp9ZW7j")).size(210f, 64f);
                 dialog.setFillParent(false);
                 dialog.show();
             }catch(Exception e){
