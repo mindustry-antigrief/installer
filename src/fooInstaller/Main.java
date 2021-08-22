@@ -34,11 +34,11 @@ public class Main extends Mod{
                 dialog.cont.add("[scarlet]Foo's client isn't available on mobile!");
                 Vars.mods.setEnabled(Vars.mods.getMod(this.getClass()), false);
             } else {
-                dialog.cont.add("[accent]Select a version of the client to download").colspan(3).row();
+                dialog.cont.add("[accent]Select a version of the client to download").colspan(2).row();
                 dialog.cont.button("v6", () -> install("mindustry-antigrief/mindustry-client-v6-builds")).fillX();
                 dialog.cont.button("v7", () -> install("mindustry-antigrief/mindustry-client-v7-builds")).fillX();
             }
-            dialog.buttons.button("join our discord", () -> Core.app.openURI("https://discord.gg/yp9ZW7j")).fillX();
+            dialog.buttons.button("join our discord", () -> Core.app.openURI("https://discord.gg/yp9ZW7j")).wrapLabel(false);
             dialog.addCloseButton();
             dialog.show();
         });
