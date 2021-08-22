@@ -37,9 +37,9 @@ public class Main extends Mod{
                 dialog.cont.add("[accent]Select a version of the client to download").colspan(3).row();
                 dialog.cont.button("v6", () -> install("mindustry-antigrief/mindustry-client-v6-builds")).fillX();
                 dialog.cont.button("v7", () -> install("mindustry-antigrief/mindustry-client-v7-builds")).fillX();
-                dialog.cont.button("join our discord", () -> Core.app.openURI("https://discord.gg/yp9ZW7j")).fillX();
-                dialog.addCloseButton();
             }
+            dialog.buttons.button("join our discord", () -> Core.app.openURI("https://discord.gg/yp9ZW7j")).fillX();
+            dialog.addCloseButton();
             dialog.show();
         });
     }
