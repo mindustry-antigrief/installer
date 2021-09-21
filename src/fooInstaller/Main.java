@@ -25,7 +25,7 @@ public class Main extends Mod{
     @Override
     public void init() {
         Events.on(ClientLoadEvent.class, e -> {
-            if (Version.combined().contains("Client")) { // Disable mod when running on client (cant remove mod within mod)
+            if (Version.combined().contains("Client")) { // Disable mod when running on client (can't remove mod within mod)
                 Vars.mods.setEnabled(Vars.mods.getMod(this.getClass()), false);
                 return;
             }
@@ -38,8 +38,8 @@ public class Main extends Mod{
                 dialog.cont.button("v6", () -> install("mindustry-antigrief/mindustry-client-v6-builds")).fillX();
                 dialog.cont.button("v7", () -> install("mindustry-antigrief/mindustry-client-v7-builds")).fillX();
             }
-            dialog.buttons.button("join our discord", () -> Core.app.openURI("https://discord.gg/yp9ZW7j")).wrapLabel(false);
             dialog.addCloseButton();
+            dialog.buttons.button("Join Our Discord", Icon.discord, () -> Core.app.openURI("https://discord.gg/yp9ZW7j")).wrapLabel(false);
             dialog.show();
         });
     }
@@ -76,15 +76,16 @@ public class Main extends Mod{
                 BaseDialog dialog = new BaseDialog("@be.updating");
                 finalDownload.invoke(becontrol, updateUrl, file, (Intc) i -> length[0] = i, (Floatc) v -> progress[0] = v, (Boolp)() -> cancel[0], (Runnable)() -> {
                     try{
+                        var javaExe = new Fi(OS.prop("java.home")).child("bin").child("java").absolutePath(); // Locates the java executable, needed for itch and steam installs
                         Runtime.getRuntime().exec(OS.isMac ?
-                                new String[]{"java", "-XstartOnFirstThread", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                                new String[]{"java", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
+                            new String[]{javaExe, "-XstartOnFirstThread", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
+                            new String[]{javaExe, "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
                         );
                         Core.app.exit();
                     }catch(IOException e){
                         dialog.cont.clearChildren();
                         dialog.cont.add("It seems that you don't have java installed, please click the button below then click the \"latest release\" button on the website.").row();
-                        dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot"));
+                        dialog.cont.button("Install Java", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
                     }
                 }, (Cons<Throwable>)e -> {
                     dialog.hide();
@@ -96,7 +97,7 @@ public class Main extends Mod{
                     cancel[0] = true;
                     dialog.hide();
                 }).size(210f, 64f);
-                dialog.buttons.button("join our discord", Icon.discord, () -> Core.app.openURI("https://discord.gg/yp9ZW7j")).size(210f, 64f);
+                dialog.buttons.button("Join Our Discord", Icon.discord, () -> Core.app.openURI("https://discord.gg/yp9ZW7j")).size(210f, 64f);
                 dialog.setFillParent(false);
                 dialog.show();
             }catch(Exception e){
