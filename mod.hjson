@@ -3,6 +3,6 @@ name: "fooInstaller"
 author: "foo, buthed010203"
 main: "fooInstaller.Main"
 description: "Simple mod to install Foo's client. Foo's client features hundreds of quality of life improvements to the mindustry experience while making as few compromises as possible."
-version: "1.2.1"
+version: "1.2.2"
 minGameVersion: 128
 hidden: true
