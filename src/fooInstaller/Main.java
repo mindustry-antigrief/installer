@@ -77,7 +77,8 @@ public class Main extends Mod{
                 finalDownload.invoke(becontrol, updateUrl, file, (Intc) i -> length[0] = i, (Floatc) v -> progress[0] = v, (Boolp)() -> cancel[0], (Runnable)() -> {
                     try{
                         var javaExe = new Fi(OS.prop("java.home")).child("bin").child("java").absolutePath(); // Locates the java executable, needed for itch and steam installs
-                        javaExe = new Fi(javaExe).exists() ? javaExe : "java"; // Fallback to "java" command
+                        javaExe = new Fi(javaExe).exists() ? javaExe : Core.files.local("jre/bin/java").absolutePath(); // Fallback to packaged java
+                        javaExe = new Fi(javaExe).exists() ? javaExe : "java"; // Fallback to java command
                         Runtime.getRuntime().exec(OS.isMac ?
                             new String[]{javaExe, "-XstartOnFirstThread", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
                             new String[]{javaExe, "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
