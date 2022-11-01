@@ -78,6 +78,7 @@ public class Main extends Mod{
                     try{
                         var javaExe = new Fi(OS.prop("java.home")).child("bin").child("java").absolutePath(); // Locates the java executable, needed for itch and steam installs
                         javaExe = new Fi(javaExe).exists() ? javaExe : Core.files.local("jre/bin/java").absolutePath(); // Fallback to packaged java
+                        javaExe = new Fi(javaExe).exists() ? javaExe : Core.files.local("jre/bin/java.exe").absolutePath(); // Fallback to packaged java (windows)
                         javaExe = new Fi(javaExe).exists() ? javaExe : "java"; // Fallback to java command
                         Runtime.getRuntime().exec(OS.isMac ?
                             new String[]{javaExe, "-XstartOnFirstThread", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
