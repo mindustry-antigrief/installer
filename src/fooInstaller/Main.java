@@ -37,7 +37,7 @@ public class Main extends Mod{
                 var def = "mindustry-antigrief/mindustry-client-v7-builds";
                 var field = d.cont.field("", null).fillX().get();
                 field.setMessageText(def);
-                d.cont.row().button("@fooinstaller.confirm", () -> install(field.getText().trim().isEmpty() ? def : field.getText()));
+                d.cont.row().button("@fooinstaller.confirm", () -> install(field.getText().trim().isEmpty() ? def : field.getText())).fillX();
             }
             d.addCloseButton();
             d.buttons.button("@fooinstaller.discord", Icon.discord, () -> Core.app.openURI("https://discord.gg/yp9ZW7j")).wrapLabel(false);
