@@ -34,7 +34,7 @@ public class Main extends Mod{
                 Vars.mods.setEnabled(Vars.mods.getMod(this.getClass()), false);
             } else {
                 d.cont.add("@fooinstaller.source").row();
-                var def = "mindustry-antigrief/mindustry-client-v7-builds";
+                var def = Version.build >= 145 ? "mindustry-antigrief/mindustry-client-v8-builds" : "mindustry-antigrief/mindustry-client-v7-builds";
                 var field = d.cont.field("", null).fillX().get();
                 field.setMessageText(def);
                 d.cont.row().button("@fooinstaller.confirm", () -> install(field.getText().trim().isEmpty() ? def : field.getText())).fillX();
