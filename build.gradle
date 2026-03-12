@@ -66,13 +66,13 @@ tasks.register('jarAndroid'){
 }
 
 jar{
-    archiveFileName = "${project.archivesBaseName}Desktop.jar"
+    archiveFileName = "${project.name}Desktop.jar"
 
     from{
         configurations.runtimeClasspath.collect{ it.isDirectory() ? it : zipTree(it) }
     }
 
-    from(rootDir){
+    from(projectDir){
         include "mod.hjson"
     }
 
@@ -81,17 +81,16 @@ jar{
     }
 }
 
-task deploy(type: Jar){
+tasks.register('deploy', Jar){
     dependsOn jarAndroid
     dependsOn jar
-    archiveFileName = "${project.archivesBaseName}.jar"
+    archiveFileName = "${project.name}.jar"
 
-    from{ [zipTree("$buildDir/libs/${project.archivesBaseName}Desktop.jar"), zipTree("$buildDir/libs/${project.archivesBaseName}Android.jar")] }
+    from{ [zipTree("build/libs/${project.name}Desktop.jar"), zipTree("build/libs/${project.name}Android.jar")] }
 
     doLast{
         delete{
-            delete "$buildDir/libs/${project.archivesBaseName}Desktop.jar"
-            delete "$buildDir/libs/${project.archivesBaseName}Android.jar"
+            delete "build/libs/${project.name}Android.jar"
         }
     }
 }
