@@ -3,7 +3,6 @@ package fooInstaller;
 import arc.*;
 import arc.files.*;
 import arc.func.*;
-import arc.scene.ui.Dialog;
 import arc.util.*;
 import arc.util.serialization.*;
 import mindustry.*;
