@@ -3,8 +3,8 @@ package fooInstaller;
 import arc.*;
 import arc.files.*;
 import arc.func.*;
+import arc.scene.ui.Dialog;
 import arc.util.*;
-import arc.util.Log.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.core.*;
@@ -18,6 +18,7 @@ import mindustry.ui.dialogs.*;
 
 import java.io.*;
 import java.net.*;
+import java.security.*;
 
 import static mindustry.Vars.*;
 
@@ -46,16 +47,39 @@ public class Main extends Mod{
         });
     }
 
-    String checkInstallCache(String upstreamVersion) {
+    @Nullable String checkInstallCache(String upstreamVersion, @Nullable String expectedHash) {
         for (Fi file : bebuildDirectory.findAll()) {
             if (!file.name().startsWith("client-be-") || !file.extension().equals("jar")) {
                 continue;
             }
 
+            if (expectedHash != null) {
+                try{
+                    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+                    byte[] bytes = digest.digest(file.readBytes());
+
+                    StringBuilder sb = new StringBuilder();
+                    for (byte b : bytes) {
+                        sb.append(String.format("%02x", b));
+                    }
+
+                    if (sb.toString().equals(expectedHash)) {
+                        return file.absolutePath();
+                    }
+                    else {
+                        continue;
+                    }
+                }catch(NoSuchAlgorithmException e) {
+                    ui.showException(e);
+                }
+            }
+
             String version = file.nameWithoutExtension().replace("client-be-", "");
 
             if (version.equals(upstreamVersion))
-                return file.absolutePath();
+                //return file.absolutePath();
+                continue;
         }
 
         return null;
@@ -79,10 +103,12 @@ public class Main extends Mod{
             Log.err(e);
         }).submit(res -> {
             Jval val = Jval.read(res.getResultAsString());
+            Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("desktop"));
+            if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("mindustry"));
+
             String newBuild = val.getString("tag_name", "0");
 
-            String cachedPath = checkInstallCache(newBuild);
-            Log.log(LogLevel.info, "cached? " + cachedPath);
+            String cachedPath = checkInstallCache(newBuild, asset == null ? null : asset.getString("digest", null).replace("sha256:", ""));
             if (cachedPath != null) {
                 try{
                     launch(javaPath, cachedPath);
@@ -93,13 +119,18 @@ public class Main extends Mod{
                 }catch(URISyntaxException e) {
                     ui.showException(e);
                 }
+            }
+
+            if (asset == null) {
+                var d = new BaseDialog("@fooinstaller.nointernet");
+                
+                d.row();
+                d.cont.button("@ok", () -> d.hide());
+                d.show();
 
                 return;
             }
 
-            Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("desktop"));
-            if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("mindustry"));
-            if (asset == null) return;
             String updateUrl = asset.getString("browser_download_url", "");
             try{
                 boolean[] cancel = {false};
