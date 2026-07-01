@@ -4,6 +4,7 @@ import arc.*;
 import arc.files.*;
 import arc.func.*;
 import arc.util.*;
+import arc.util.Log.*;
 import arc.util.serialization.*;
 import mindustry.*;
 import mindustry.core.*;
@@ -45,6 +46,33 @@ public class Main extends Mod{
         });
     }
 
+    String checkInstallCache(String upstreamVersion) {
+        for (Fi file : bebuildDirectory.findAll()) {
+            if (!file.name().startsWith("client-be-") || !file.extension().equals("jar")) {
+                continue;
+            }
+
+            String version = file.nameWithoutExtension().replace("client-be-", "");
+
+            if (version.equals(upstreamVersion))
+                return file.absolutePath();
+        }
+
+        return null;
+    }
+
+    void launch(String javaPath, String jarPath) throws IOException, URISyntaxException {
+        Fi fileDest = OS.hasProp("becopy") ?
+                Fi.get(OS.prop("becopy")) :
+                Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+
+        Runtime.getRuntime().exec(OS.isMac ?
+            new String[]{javaPath, "-XstartOnFirstThread", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest, "-jar", jarPath} :
+            new String[]{javaPath, "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest, "-jar", jarPath}
+        );
+        Core.app.exit();
+    }
+
     void install(String url) {
         Http.get("https://api.github.com/repos/" + url + "/releases/latest").error(e -> {
             ui.loadfrag.hide();
@@ -52,6 +80,23 @@ public class Main extends Mod{
         }).submit(res -> {
             Jval val = Jval.read(res.getResultAsString());
             String newBuild = val.getString("tag_name", "0");
+
+            String cachedPath = checkInstallCache(newBuild);
+            Log.log(LogLevel.info, "cached? " + cachedPath);
+            if (cachedPath != null) {
+                try{
+                    launch(javaPath, cachedPath);
+                }catch(IOException e){
+                    var d = new BaseDialog("@fooinstaller.java.notfound");
+                    d.row();
+                    d.cont.button("@fooinstaller.java.install", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
+                }catch(URISyntaxException e) {
+                    ui.showException(e);
+                }
+
+                return;
+            }
+
             Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("desktop"));
             if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("mindustry"));
             if (asset == null) return;
@@ -61,22 +106,19 @@ public class Main extends Mod{
                 float[] progress = {0};
                 int[] length = {0};
                 Fi file = bebuildDirectory.child("client-be-" + newBuild + ".jar");
-                Fi fileDest = OS.hasProp("becopy") ?
-                        Fi.get(OS.prop("becopy")) :
-                        Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
                 var d = new BaseDialog("@be.updating");
                 download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                     try{
-                        Runtime.getRuntime().exec(OS.isMac ?
-                            new String[]{javaPath, "-XstartOnFirstThread", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                            new String[]{javaPath, "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
-                        );
-                        Core.app.exit();
+                        d.hide();
+                        launch(javaPath, file.absolutePath());
                     }catch(IOException e){
                         d.cont.clearChildren();
                         d.cont.add("@fooinstaller.java.notfound").row();
                         d.cont.button("@fooinstaller.java.install", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
+                    }catch(URISyntaxException e) {
+                        d.hide();
+                        ui.showException(e);
                     }
                 }, e -> {
                     d.hide();
