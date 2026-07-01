@@ -17,6 +17,7 @@ import mindustry.ui.dialogs.*;
 
 import java.io.*;
 import java.net.*;
+import java.security.*;
 
 import static mindustry.Vars.*;
 
@@ -45,38 +46,109 @@ public class Main extends Mod{
         });
     }
 
+    @Nullable String checkInstallCache(String upstreamVersion, @Nullable String expectedHash) {
+        for (Fi file : bebuildDirectory.findAll()) {
+            if (!file.name().startsWith("client-be-") || !file.extension().equals("jar")) {
+                continue;
+            }
+
+            if (expectedHash != null) {
+                try{
+                    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+                    byte[] bytes = digest.digest(file.readBytes());
+
+                    StringBuilder sb = new StringBuilder();
+                    for (byte b : bytes) {
+                        sb.append(String.format("%02x", b));
+                    }
+
+                    if (sb.toString().equals(expectedHash)) {
+                        return file.absolutePath();
+                    }
+                    else {
+                        continue;
+                    }
+                }catch(NoSuchAlgorithmException e) {
+                    ui.showException(e);
+                }
+            }
+
+            String version = file.nameWithoutExtension().replace("client-be-", "");
+
+            if (version.equals(upstreamVersion))
+                //return file.absolutePath();
+                continue;
+        }
+
+        return null;
+    }
+
+    void launch(String javaPath, String jarPath) throws IOException, URISyntaxException {
+        Fi fileDest = OS.hasProp("becopy") ?
+                Fi.get(OS.prop("becopy")) :
+                Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+
+        Runtime.getRuntime().exec(OS.isMac ?
+            new String[]{javaPath, "-XstartOnFirstThread", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest, "-jar", jarPath} :
+            new String[]{javaPath, "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest, "-jar", jarPath}
+        );
+        Core.app.exit();
+    }
+
     void install(String url) {
         Http.get("https://api.github.com/repos/" + url + "/releases/latest").error(e -> {
             ui.loadfrag.hide();
             Log.err(e);
         }).submit(res -> {
             Jval val = Jval.read(res.getResultAsString());
-            String newBuild = val.getString("tag_name", "0");
             Jval asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("desktop"));
             if (asset == null) asset = val.get("assets").asArray().find(v -> v.getString("name", "").toLowerCase().contains("mindustry"));
-            if (asset == null) return;
+
+            String newBuild = val.getString("tag_name", "0");
+
+            String cachedPath = checkInstallCache(newBuild, asset == null ? null : asset.getString("digest", null).replace("sha256:", ""));
+            if (cachedPath != null) {
+                try{
+                    launch(javaPath, cachedPath);
+                }catch(IOException e){
+                    var d = new BaseDialog("@fooinstaller.java.notfound");
+                    d.row();
+                    d.cont.button("@fooinstaller.java.install", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
+                }catch(URISyntaxException e) {
+                    ui.showException(e);
+                }
+            }
+
+            if (asset == null) {
+                var d = new BaseDialog("@fooinstaller.nointernet");
+                
+                d.row();
+                d.cont.button("@ok", () -> d.hide());
+                d.show();
+
+                return;
+            }
+
             String updateUrl = asset.getString("browser_download_url", "");
             try{
                 boolean[] cancel = {false};
                 float[] progress = {0};
                 int[] length = {0};
                 Fi file = bebuildDirectory.child("client-be-" + newBuild + ".jar");
-                Fi fileDest = OS.hasProp("becopy") ?
-                        Fi.get(OS.prop("becopy")) :
-                        Fi.get(BeControl.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
 
                 var d = new BaseDialog("@be.updating");
                 download(updateUrl, file, i -> length[0] = i, v -> progress[0] = v, () -> cancel[0], () -> {
                     try{
-                        Runtime.getRuntime().exec(OS.isMac ?
-                            new String[]{javaPath, "-XstartOnFirstThread", "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()} :
-                            new String[]{javaPath, "-DlastBuild=" + Version.build, "-Dberestart", "-Dbecopy=" + fileDest.absolutePath(), "-jar", file.absolutePath()}
-                        );
-                        Core.app.exit();
+                        d.hide();
+                        launch(javaPath, file.absolutePath());
                     }catch(IOException e){
                         d.cont.clearChildren();
                         d.cont.add("@fooinstaller.java.notfound").row();
                         d.cont.button("@fooinstaller.java.install", () -> Core.app.openURI("https://adoptium.net/index.html?variant=openjdk16&jvmVariant=hotspot")).size(210f, 64f);
+                    }catch(URISyntaxException e) {
+                        d.hide();
+                        ui.showException(e);
                     }
                 }, e -> {
                     d.hide();
